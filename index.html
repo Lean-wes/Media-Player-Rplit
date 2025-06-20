@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Media Player Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .wmp-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #111111;
+            color: #ffffff;
+        }
+        
+        .wmp-header {
+            background: linear-gradient(to right, #2d2d2d, #1e1e1e);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .wmp-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .wmp-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .wmp-sidebar {
+            width: 200px;
+            background-color: #1e1e1e;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+        
+        .wmp-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .wmp-now-playing {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #1e1e1e 0%, #111111 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .wmp-visualizer {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .wmp-album-art {
+            width: 200px;
+            height: 200px;
+            background-color: #333;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 48px;
+            z-index: 10;
+            overflow: hidden;
+        }
+        
+        .wmp-album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .wmp-controls-container {
+            background: linear-gradient(to bottom, #2d2d2d, #1e1e1e);
+            padding: 12px;
+            border-top: 1px solid #333;
+        }
+        
+        .wmp-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        
+        .wmp-button {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .wmp-button:hover {
+            color: white;
+        }
+        
+        .wmp-progress-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .wmp-time {
+            font-size: 12px;
+            color: #ccc;
+            width: 45px;
+            text-align: center;
+        }
+        
+        .wmp-progress {
+            flex: 1;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .wmp-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #6dd5fa, #2980b9);
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .wmp-progress-handle {
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: -2px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .wmp-volume {
+            display: flex;
+            align-items: center;
+            margin-left: 16px;
+        }
+        
+        .wmp-volume-slider {
+            width: 80px;
+            height: 4px;
+            background-color: #333;
+            border-radius: 2px;
+            margin: 0 8px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .wmp-volume-level {
+            height: 100%;
+            width: 70%;
+            background: linear-gradient(to right, #6dd5fa, #2980b9);
+            border-radius: 2px;
+        }
+        
+        .wmp-nav {
+            padding: 8px 0;
+        }
+        
+        .wmp-nav-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .wmp-nav-item:hover {
+            background-color: #333;
+        }
+        
+        .wmp-nav-item.active {
+            background-color: #0078d7;
+        }
+        
+        .wmp-library {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+        
+        .wmp-section-title {
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #999;
+            text-transform: uppercase;
+        }
+        
+        .wmp-playlist {
+            flex: 1;
+            overflow-y: auto;
+            background-color: #111;
+        }
+        
+        .wmp-playlist-header {
+            display: grid;
+            grid-template-columns: 30px 1fr 120px 80px;
+            padding: 8px 16px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+            color: #999;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .wmp-playlist-items {
+            overflow-y: auto;
+        }
+        
+        .wmp-playlist-item {
+            display: grid;
+            grid-template-columns: 30px 1fr 120px 80px;
+            padding: 8px 16px;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .wmp-playlist-item:hover {
+            background-color: #222;
+        }
+        
+        .wmp-playlist-item.active {
+            background-color: #0078d7;
+        }
+        
+        .wmp-status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 16px;
+            background-color: #1e1e1e;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .wmp-upload-zone {
+            border: 2px dashed #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px;
+            transition: all 0.3s;
+        }
+        
+        .wmp-upload-zone:hover, .wmp-upload-zone.drag-over {
+            border-color: #0078d7;
+            background-color: rgba(0, 120, 215, 0.1);
+        }
+        
+        .wmp-upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #666;
+        }
+        
+        .wmp-visualizer-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 20px;
+            z-index: 5;
+        }
+        
+        .wmp-visualizer-bar {
+            flex: 1;
+            margin: 0 1px;
+            background: linear-gradient(to top, rgba(109, 213, 250, 0.8), rgba(41, 128, 185, 0.8));
+            border-radius: 2px 2px 0 0;
+            height: 5px;
+            transition: height 0.1s ease;
+        }
+        
+        .wmp-reflection {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(0, 0, 0, 0) 0%, 
+                rgba(0, 0, 0, 0.1) 40%, 
+                rgba(0, 0, 0, 0.5) 80%, 
+                rgba(0, 0, 0, 0.7) 100%);
+            z-index: 1;
+        }
+        
+        .wmp-now-playing-info {
+            position: absolute;
+            bottom: 130px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .wmp-now-playing-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        .wmp-now-playing-artist {
+            font-size: 16px;
+            color: #ccc;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        .wmp-tabs {
+            display: flex;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        
+        .wmp-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .wmp-tab:hover {
+            background-color: #333;
+        }
+        
+        .wmp-tab.active {
+            background-color: #0078d7;
+        }
+        
+        .wmp-tab-content {
+            display: none;
+            flex: 1;
+            overflow: auto;
+        }
+        
+        .wmp-tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .wmp-enqueue-button {
+            background-color: #0078d7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 16px;
+        }
+        
+        .wmp-enqueue-button:hover {
+            background-color: #0063b1;
+        }
+        
+        @media (max-width: 768px) {
+            .wmp-main {
+                flex-direction: column;
+            }
+            
+            .wmp-sidebar {
+                width: 100%;
+                height: 120px;
+                border-right: none;
+                border-bottom: 1px solid #333;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            
+            .wmp-nav {
+                display: flex;
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .wmp-nav-item {
+                white-space: nowrap;
+                padding: 8px 12px;
+                border-radius: 4px;
+                flex-shrink: 0;
+            }
+            
+            .wmp-section-title {
+                display: none;
+            }
+            
+            .wmp-library {
+                display: flex;
+                gap: 8px;
+                padding: 8px;
+            }
+            
+            .wmp-library .wmp-nav-item {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            
+            .wmp-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .wmp-tab {
+                flex-shrink: 0;
+            }
+            
+            .wmp-album-art {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .wmp-now-playing-title {
+                font-size: 18px;
+            }
+            
+            .wmp-now-playing-artist {
+                font-size: 14px;
+            }
+            
+            .wmp-playlist-header, .wmp-playlist-item {
+                grid-template-columns: 30px 1fr 80px;
+            }
+            
+            .wmp-playlist-header > div:nth-child(3), 
+            .wmp-playlist-item > div:nth-child(3) {
+                display: none;
+            }
+            
+            .wmp-controls {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .wmp-volume {
+                order: 1;
+                width: 100%;
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 8px;
+            }
+            
+            .wmp-progress-container {
+                order: -1;
+                margin-bottom: 12px;
+            }
+            
+            .wmp-visualizer-container {
+                height: 80px;
+                padding: 0 10px;
+            }
+            
+            .wmp-now-playing-info {
+                bottom: 90px;
+            }
+            
+            .wmp-upload-zone {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .wmp-upload-icon svg {
+                width: 48px;
+                height: 48px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .wmp-header {
+                padding: 4px 8px;
+            }
+            
+            .wmp-logo span {
+                font-size: 14px;
+            }
+            
+            .wmp-sidebar {
+                height: 100px;
+            }
+            
+            .wmp-nav, .wmp-library {
+                padding: 4px;
+                gap: 4px;
+            }
+            
+            .wmp-nav-item {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            .wmp-nav-item svg {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .wmp-album-art {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .wmp-now-playing-title {
+                font-size: 16px;
+            }
+            
+            .wmp-now-playing-artist {
+                font-size: 12px;
+            }
+            
+            .wmp-controls-container {
+                padding: 8px;
+            }
+            
+            .wmp-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .wmp-button:nth-child(2) svg {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .wmp-time {
+                font-size: 10px;
+                width: 35px;
+            }
+            
+            .wmp-volume-slider {
+                width: 60px;
+            }
+            
+            .wmp-visualizer-container {
+                height: 60px;
+            }
+            
+            .wmp-now-playing-info {
+                bottom: 70px;
+            }
+            
+            .wmp-status-bar {
+                padding: 2px 8px;
+                font-size: 10px;
+            }
+            
+            .wmp-playlist-header, .wmp-playlist-item {
+                padding: 6px 8px;
+                font-size: 11px;
+                grid-template-columns: 25px 1fr 60px;
+            }
+            
+            .wmp-upload-zone {
+                margin: 8px;
+                padding: 12px;
+            }
+            
+            .wmp-upload-zone .text-lg {
+                font-size: 16px;
+            }
+            
+            .wmp-upload-zone .text-sm {
+                font-size: 12px;
+            }
+            
+            .wmp-upload-icon svg {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .wmp-enqueue-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Touch improvements for mobile */
+        @media (hover: none) and (pointer: coarse) {
+            .wmp-button {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .wmp-nav-item {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .wmp-tab {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .wmp-playlist-item {
+                min-height: 44px;
+                align-items: center;
+            }
+            
+            .wmp-progress, .wmp-volume-slider {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+        }
+        
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="wmp-container">
+        <div class="wmp-header">
+            <div class="wmp-logo">
+                <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" stroke-width="2"/>
+                    <path d="M9.5 8.5L16.5 12L9.5 15.5V8.5Z" fill="white" stroke="white"/>
+                </svg>
+                <span class="font-semibold">Windows Media Player Web</span>
+            </div>
+            <div class="flex gap-2">
+                <button class="wmp-button">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="wmp-button">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="wmp-main">
+            <div class="wmp-sidebar">
+                <div class="wmp-nav">
+                    <div class="wmp-nav-item active" data-tab="library">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Library
+                    </div>
+                    <div class="wmp-nav-item" data-tab="upload">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 17V3M12 3L7 8M12 3L17 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 15V17C3 18.6569 4.34315 20 6 20H18C19.6569 20 21 18.6569 21 17V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Upload Files
+                    </div>
+                </div>
+                
+                <div class="wmp-section-title">LIBRARY</div>
+                <div class="wmp-library">
+                    <div class="wmp-nav-item">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 18V5L21 3V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Music
+                    </div>
+                    <div class="wmp-nav-item">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 9L15 12L10 15V9Z" fill="currentColor"/>
+                        </svg>
+                        Videos
+                    </div>
+                    <div class="wmp-nav-item">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                            <path d="M5 19L8 16L10 18L15 13L19 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Pictures
+                    </div>
+                </div>
+                
+                <div class="wmp-section-title">PLAYLISTS</div>
+                <div class="wmp-library">
+                    <div class="wmp-nav-item">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Create Playlist
+                    </div>
+                    <div class="wmp-nav-item">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20M4 10H20M4 14H20M4 18H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Recently Added
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wmp-content">
+                <div class="wmp-tabs">
+                    <div class="wmp-tab active" data-content="now-playing">Now Playing</div>
+                    <div class="wmp-tab" data-content="playlist">Playlist</div>
+                </div>
+                
+                <div class="wmp-tab-content active" id="now-playing">
+                    <div class="wmp-now-playing">
+                        <div class="wmp-visualizer">
+                            <div class="wmp-album-art" id="albumArt">
+                                <svg class="w-16 h-16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 18V5L21 3V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="wmp-now-playing-info">
+                            <div class="wmp-now-playing-title" id="nowPlayingTitle">No file selected</div>
+                            <div class="wmp-now-playing-artist" id="nowPlayingArtist">Upload a file to begin playback</div>
+                        </div>
+                        
+                        <div class="wmp-visualizer-container" id="visualizer">
+                            <!-- Bars will be generated by JS -->
+                        </div>
+                        
+                        <div class="wmp-reflection"></div>
+                    </div>
+                    
+                    <div class="wmp-controls-container">
+                        <div class="wmp-controls">
+                            <button class="wmp-button" id="prevBtn">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 20L9 12L19 4V20Z" fill="currentColor"/>
+                                    <path d="M5 4H7V20H5V4Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="wmp-button" id="playBtn">
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="wmp-button hidden" id="pauseBtn">
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 4H10V20H6V4Z" fill="currentColor"/>
+                                    <path d="M14 4H18V20H14V4Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="wmp-button" id="stopBtn">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="wmp-button" id="nextBtn">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5 4L15 12L5 20V4Z" fill="currentColor"/>
+                                    <path d="M19 4H17V20H19V4Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            
+                            <div class="wmp-volume">
+                                <button class="wmp-button" id="muteBtn">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="currentColor"/>
+                                        <path d="M15.54 8.46C16.4774 9.39764 17.0039 10.6692 17.0039 11.995C17.0039 13.3208 16.4774 14.5924 15.54 15.53" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M19.07 4.93C20.9447 6.80528 21.9979 9.34836 21.9979 12C21.9979 14.6516 20.9447 17.1947 19.07 19.07" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                                
+                                <div class="wmp-volume-slider">
+                                    <div class="wmp-volume-level" id="volumeLevel"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="wmp-progress-container">
+                            <div class="wmp-time" id="currentTime">0:00</div>
+                            <div class="wmp-progress" id="progressBar">
+                                <div class="wmp-progress-bar" id="progressBarFill">
+                                    <div class="wmp-progress-handle"></div>
+                                </div>
+                            </div>
+                            <div class="wmp-time" id="totalTime">0:00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wmp-tab-content" id="playlist">
+                    <div class="wmp-playlist-header">
+                        <div>#</div>
+                        <div>Title</div>
+                        <div>Artist</div>
+                        <div>Duration</div>
+                    </div>
+                    <div class="wmp-playlist-items" id="playlistItems">
+                        <!-- Playlist items will be added here -->
+                    </div>
+                </div>
+                
+                <div class="wmp-tab-content" id="upload">
+                    <div class="wmp-upload-zone" id="uploadZone">
+                        <div class="wmp-upload-icon">
+                            <svg class="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 17V3M12 3L7 8M12 3L17 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3 15V17C3 18.6569 4.34315 20 6 20H18C19.6569 20 21 18.6569 21 17V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="text-lg mb-2">Drag and drop files here</div>
+                        <div class="text-sm text-gray-400 mb-4">or</div>
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded cursor-pointer">
+                            Browse Files
+                            <input type="file" id="fileInput" class="hidden" accept="audio/*,video/*" multiple>
+                        </label>
+                        <div class="mt-4 text-sm text-gray-400">Supported formats: MP3, WAV, MP4, WebM</div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="text-lg mb-2">Selected Files:</div>
+                        <div id="selectedFiles" class="text-sm text-gray-400">No files selected</div>
+                        <button class="wmp-enqueue-button hidden" id="enqueueButton">Add to Playlist</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="wmp-status-bar">
+            <div id="statusMessage">Ready</div>
+            <div id="fileCount">0 files</div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="metadata"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
